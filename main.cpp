@@ -6,14 +6,15 @@
 #include "Clock.h"
 #include <mutex>
 
-mutex mu;
+mutex mu1;
+mutex mu2;
+mutex mu3;
 
 using namespace std;
 
 void takeProcess(vector<Process*> &ProcessQ, Clock& clk); //Trying to pass in Clock object. Doesn't work...
 /* Maybe you shouldn't pass Clock clk, but just "clk" instead since you're not defining the function, only declaring it*/
 Process* tempProc;
-Process* veryfirstProcOfCPU;
 
 
 // Right now, I initiated the clock object. However, when I try to pass it to the function, it crashes. Idk what the issue is.
@@ -26,7 +27,7 @@ int main()
     Process *pt1;
     Process *pt2;
     Process p1(1,1000,2500);
-    Process p2(2,2500,1000);
+    Process p2(2,2500,2000);
     Process p3(3,3500,1500);
 
     Process* ProcessList[2];
@@ -38,10 +39,10 @@ int main()
 
 
     std::thread CPU1(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread1
-    //std::thread CPU2(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread2
+    std::thread CPU2(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread2
 
     CPU1.join();
-    //CPU2.join();
+    CPU2.join();
 
 /*    ProcessList[0] = p1;
     ProcessList[1] = p2;
@@ -57,30 +58,50 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
     //cout <<"Entering takeProcess" <<endl;
     bool firstProcessPicked = false;
     int time =0;
+    bool startProcess = false;
+    Process* veryfirstProcOfCPU;
+    //cout << this_thread::get_id() << "Entered takeProcess" <<endl;
     while(ProcessQ.size()>0){
         if(!firstProcessPicked){
+                //cout << this_thread::get_id() << "firstProcessPicked check"<<endl;
+                mu1.lock();
+                //cout << this_thread::get_id() << "Locked mutex"<<endl;
                 veryfirstProcOfCPU = ProcessQ.front();
-                bool startProcess = false;
-                firstProcessPicked = true;
+                for(int i = 0; i<ProcessQ.size(); i++){ //For loop to pop the front process out of the vector and shifting the objects.
+                if(i<ProcessQ.size()-1){
+                    ProcessQ.at(i) = ProcessQ.at(i+1);
+                    }else{
+                        ProcessQ.at(i)= NULL;
+                        }
+                }
 
+                ProcessQ.pop_back();
+                //cout << this_thread::get_id() << "P" << veryfirstProcOfCPU->getPID()<<endl;
+                firstProcessPicked = true;
+                mu1.unlock();
+                //cout << this_thread::get_id() << "Unlocked mutex"<<endl;
     //Checks for VERY FIRST arrival time to start executing process
             while(!startProcess){
                 if(clk.getTime()==veryfirstProcOfCPU->getaT()){
+                    //cout <<veryfirstProcOfCPU->getaT();
                 startProcess=true;
                 time = veryfirstProcOfCPU->getaT();
                 }
             }
-
-        }else{
-                tempProc = ProcessQ.front();
-                cout << "Time : " << clk.getTime() << ", P" << tempProc->getPID() << " Started" << endl;
-                time += tempProc->getbT();
+                cout << "Time : " << clk.getTime() << ", P" << veryfirstProcOfCPU->getPID() << " Started by CPU"<<this_thread::get_id() << endl;
+                time += veryfirstProcOfCPU->getbT();
                 while(clk.getTime()!= time){
 
                     }
 
-                cout << "Time : " << clk.getTime() << ", P"<< tempProc->getPID() <<" ended. " << "current thread: " << std::this_thread::get_id() << endl;
+                cout << "Time : " << clk.getTime() << ", P"<< veryfirstProcOfCPU->getPID() <<" Ended by CPU" << std::this_thread::get_id() << endl;
 
+
+        }else{
+                //cout << this_thread::get_id() << "Entered else" <<endl;
+                mu2.lock();
+                //cout << this_thread::get_id() << "Locked mutex2" <<endl;
+                tempProc = ProcessQ.front();
                 for(int i = 0; i<ProcessQ.size(); i++){ //For loop to pop the front process out of the vector and shifting the objects.
                 if(i<ProcessQ.size()-1){
                 ProcessQ.at(i) = ProcessQ.at(i+1);
@@ -90,6 +111,16 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
                 }
 
                 ProcessQ.pop_back();
+                mu2.unlock();
+                //cout << this_thread::get_id() << "unlocked mutex2" <<endl;
+
+                cout << "Time : " << clk.getTime() << ", P" << tempProc->getPID() << " Started by CPU" <<this_thread::get_id() << endl;
+                time += tempProc->getbT();
+                while(clk.getTime()!= time){
+
+                    }
+
+                cout << "Time : " << clk.getTime() << ", P"<< tempProc->getPID() <<" Ended by CPU" << this_thread::get_id() << endl;
 
         }
     }
