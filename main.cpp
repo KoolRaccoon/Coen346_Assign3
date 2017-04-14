@@ -4,6 +4,9 @@
 #include <thread>
 #include "Scheduler.h"
 #include "Clock.h"
+#include <mutex>
+
+mutex mu;
 
 using namespace std;
 
@@ -28,13 +31,16 @@ int main()
 
     Process* ProcessList[2];
     vector<Process*> ProcessQ;
+    //for (int i = 1; i<sizeof(ProcessList); i++)
     ProcessQ.push_back(&p1);
     ProcessQ.push_back(&p2);
     ProcessQ.push_back(&p3);
 
-  std::thread mythread(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread
-
-    mythread.join();
+    std::thread CPU1(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread1
+    std::thread CPU2(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread2
+    
+    CPU1.join();
+    CPU2.join();
 
 /*    ProcessList[0] = p1;
     ProcessList[1] = p2;
@@ -52,6 +58,7 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
     int counter = 1;
     int time =0;
     bool startProcess = false;
+    
     while(!startProcess){
         if(clk.getTime()==veryfirstProc->getaT()){
             startProcess=true;
@@ -65,6 +72,7 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
     //cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
     while(ProcessQ.size()>0){
             //cout << "Function ran: " << counter << " times" << endl;
+    std::lock_guard<std::mutex> lock(mu);
     tempProc = ProcessQ.front();
     cout << "Time : " << clk.getTime() << ", P" << tempProc->getPID() << " Started" << endl;
             time += tempProc->getbT();
@@ -72,8 +80,8 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
 
             }
 
-    cout << "Time : " << clk.getTime() << ", P"<< tempProc->getPID() <<" ended" <<endl;
-
+        cout << "Time : " << clk.getTime() << ", P"<< tempProc->getPID() <<" ended. " << "current thread: " << std::this_thread::get_id() << endl;
+    
     for(int i = 0; i<ProcessQ.size(); i++){ //For loop to pop the front process out of the vector and shifting the objects.
         if(i<ProcessQ.size()-1){
         ProcessQ.at(i) = ProcessQ.at(i+1);
@@ -83,9 +91,9 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
     }
 
     ProcessQ.pop_back();
-
     //cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
     counter++;
+    mu.unlock();
     }
 
 }
