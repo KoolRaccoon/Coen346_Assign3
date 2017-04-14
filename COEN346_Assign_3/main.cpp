@@ -7,10 +7,10 @@
 
 using namespace std;
 
-//void takeProcess(vector<Process*> &ProcessQ, Clock clk); //Trying to pass in Clock object. Doesn't work...
+void takeProcess(vector<Process*> &ProcessQ, Clock& clk); //Trying to pass in Clock object. Doesn't work...
 /* Maybe you shouldn't pass Clock clk, but just "clk" instead since you're not defining the function, only declaring it*/
-void takeProcess(vector<Process*> &ProcessQ);
 Process* tempProc;
+Process* veryfirstProc;
 
 
 // Right now, I initiated the clock object. However, when I try to pass it to the function, it crashes. Idk what the issue is.
@@ -25,51 +25,67 @@ int main()
     Process p1(1000,2500);
     Process p2(2500,1000);
     Process p3(3500,1500);
-
+    
     Process* ProcessList[2];
-
     vector<Process*> ProcessQ;
     ProcessQ.push_back(&p1);
     ProcessQ.push_back(&p2);
     ProcessQ.push_back(&p3);
-
-//    std::thread mythread(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread
-    std::thread mythread(&takeProcess, std::ref(ProcessQ));
-    for (int i = 0; i<10; i++){
-        cout <<"Printing from main thread"<<endl;
-    }
+    
+    std::thread mythread(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread
+    
     mythread.join();
-
-/*    ProcessList[0] = p1;
-    ProcessList[1] = p2;
-    pt1 = & ProcessList[0];
-    pt2 = & ProcessList[1];
-
-    cout << "Process pointer 1 is pointing at index 0 and its process' arrival time is " << pt1->getaT() << endl;
-    cout << "Process pointer 2 is pointing at index 1, and its process' arrival time is " << pt2->getaT() <<endl;
-*/    return 0;
+    
+    /*    ProcessList[0] = p1;
+     ProcessList[1] = p2;
+     pt1 = & ProcessList[0];
+     pt2 = & ProcessList[1];
+     
+     cout << "Process pointer 1 is pointing at index 0 and its process' arrival time is " << pt1->getaT() << endl;
+     cout << "Process pointer 2 is pointing at index 1, and its process' arrival time is " << pt2->getaT() <<endl;
+     */    return 0;
 }
 
-void takeProcess(vector<Process*> &ProcessQ/*, Clock clk*/){
+void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
+    cout <<"Entering takeProcess" <<endl;
+    veryfirstProc = ProcessQ.front();
     int counter = 1;
-    while(ProcessQ.size()>0){
-            cout << "Function ran: " << counter << " times" << endl;
-    tempProc = ProcessQ.front();
-
-    cout << tempProc->getbT()<<endl;
-
-    cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
-    for(int i = 0; i<ProcessQ.size(); i++){
-        if(i<ProcessQ.size()-1){
-        ProcessQ.at(i) = ProcessQ.at(i+1);
-        }else{
-        ProcessQ.at(i)= NULL;
+    int time =0;
+    bool startProcess = false;
+    while(!startProcess){
+        if(clk.getTime()==veryfirstProc->getaT()){
+            startProcess=true;
         }
     }
-
-    ProcessQ.pop_back();
-
-    cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
-    counter++;
+    
+    if(startProcess){
+        cout << "Time : " <<veryfirstProc->getaT()<< ", P1 started" <<endl;
+        time = veryfirstProc->getaT();
     }
+    
+    cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
+    while(ProcessQ.size()>0){
+        cout << "Function ran: " << counter << " times" << endl;
+        tempProc = ProcessQ.front();
+        time += tempProc->getbT();
+        while(clk.getTime()!= time){
+            
+        }
+        
+        cout << "Time : " << clk.getTime() << ", P1 ended" <<endl;
+        
+        for(int i = 0; i<ProcessQ.size(); i++){ //For loop to pop the front process out of the vector and shifting the objects.
+            if(i<ProcessQ.size()-1){
+                ProcessQ.at(i) = ProcessQ.at(i+1);
+            }else{
+                ProcessQ.at(i)= NULL;
+            }
+        }
+        
+        ProcessQ.pop_back();
+        
+        cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
+        counter++;
+    }
+    
 }
