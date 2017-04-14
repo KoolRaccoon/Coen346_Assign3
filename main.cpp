@@ -22,9 +22,9 @@ int main()
     cout<< "Time: " << clk.getTime() <<endl;
     Process *pt1;
     Process *pt2;
-    Process p1(1000,2500);
-    Process p2(2500,1000);
-    Process p3(3500,1500);
+    Process p1(1,1000,2500);
+    Process p2(2,2500,1000);
+    Process p3(3,3500,1500);
 
     Process* ProcessList[2];
     vector<Process*> ProcessQ;
@@ -47,7 +47,7 @@ int main()
 }
 
 void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
-    cout <<"Entering takeProcess" <<endl;
+    //cout <<"Entering takeProcess" <<endl;
     veryfirstProc = ProcessQ.front();
     int counter = 1;
     int time =0;
@@ -59,20 +59,20 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
     }
 
     if(startProcess){
-            cout << "Time : " <<veryfirstProc->getaT()<< ", P1 started" <<endl;
             time = veryfirstProc->getaT();
     }
 
-    cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
+    //cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
     while(ProcessQ.size()>0){
-            cout << "Function ran: " << counter << " times" << endl;
+            //cout << "Function ran: " << counter << " times" << endl;
     tempProc = ProcessQ.front();
+    cout << "Time : " << clk.getTime() << ", P" << tempProc->getPID() << " Started" << endl;
             time += tempProc->getbT();
             while(clk.getTime()!= time){
 
             }
 
-    cout << "Time : " << clk.getTime() << ", P1 ended" <<endl;
+    cout << "Time : " << clk.getTime() << ", P"<< tempProc->getPID() <<" ended" <<endl;
 
     for(int i = 0; i<ProcessQ.size(); i++){ //For loop to pop the front process out of the vector and shifting the objects.
         if(i<ProcessQ.size()-1){
@@ -84,7 +84,7 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
 
     ProcessQ.pop_back();
 
-    cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
+    //cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
     counter++;
     }
 

@@ -10,9 +10,11 @@ class Process
     public:
         Process();
         virtual ~Process();
-        Process(int, int);
+        Process(int, int, int);
         void setaT(int);
         void setbT(int);
+        void setPID(int);
+        int getPID();
         int getaT();
         int getbT();
 
@@ -21,6 +23,7 @@ class Process
     private:
         int Arrival_Time;
         int Burst_Time;
+        int PID;
 };
 
 #endif // PROCESS_H
