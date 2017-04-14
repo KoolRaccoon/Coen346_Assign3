@@ -5,6 +5,7 @@
 #include "Scheduler.h"
 #include "Clock.h"
 #include <mutex>
+#include <fstream>
 
 mutex mu1;
 mutex mu2;
@@ -12,9 +13,14 @@ mutex mu3;
 
 using namespace std;
 
+void ReadFile ();
 void takeProcess(vector<Process*> &ProcessQ, Clock& clk); //Trying to pass in Clock object. Doesn't work...
 /* Maybe you shouldn't pass Clock clk, but just "clk" instead since you're not defining the function, only declaring it*/
 Process* tempProc;
+int Num_Process;
+vector<Process*> ReadProcess[10];
+Process ProcessArray[20];
+
 
 
 // Right now, I initiated the clock object. However, when I try to pass it to the function, it crashes. Idk what the issue is.
@@ -24,18 +30,25 @@ int main()
     Clock clk;
     clk.StartClock();
     cout<< "Time: " << clk.getTime() <<endl;
+    vector<Process*> ProcessQ;
     Process *pt1;
     Process *pt2;
-    Process p1(1,1000,2500);
-    Process p2(2,2500,2000);
-    Process p3(3,3500,1500);
+    //Process p1(1,1000,2500);
+    //Process p2(2,2500,2000);
+    //Process p3(3,3500,1500);
+    //Process p4(4,5000,2000);
+    ReadFile();
 
+    for(int i=0; i<Num_Process;i++){
+        //cout << ProcessArray[i].getPID() << ", " << ProcessArray[i].getaT() << ", " << ProcessArray[i].getbT() << endl;
+        ProcessQ.push_back(&ProcessArray[i]);
+    }
     Process* ProcessList[2];
-    vector<Process*> ProcessQ;
+    //ProcessQ=ReadProcess;
     //for (int i = 1; i<sizeof(ProcessList); i++)
-    ProcessQ.push_back(&p1);
-    ProcessQ.push_back(&p2);
-    ProcessQ.push_back(&p3);
+    //ProcessQ.push_back(&p1);
+    //ProcessQ.push_back(&p2);
+    //ProcessQ.push_back(&p3);
 
 
     std::thread CPU1(&takeProcess, std::ref(ProcessQ), std::ref(clk)); // Attempting to passe Clock object to thread1
@@ -124,8 +137,29 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
 
         }
     }
-
-
     //cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl
+}
 
+void ReadFile (){
+
+    fstream input_File;
+
+    string File_Path = "input.txt";
+
+    input_File.open(File_Path);
+    input_File >> Num_Process;
+    for(int i = 0; i<Num_Process; i++){
+        int a,b,c;
+        input_File >> a;
+        ProcessArray[i].setPID(a);
+        input_File >> b;
+        ProcessArray[i].setaT(b);
+        input_File >> c;
+        ProcessArray[i].setbT(c);
+
+        //ReadProcess.push_back(&StoreProcess);
+        //cout << ReadProcess[i]->getPID()<<" " << ReadProcess[i]->getaT() << " " << ReadProcess[i]->getbT() << endl;
+    }
+
+    input_File.close();
 }
