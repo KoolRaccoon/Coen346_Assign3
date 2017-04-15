@@ -13,10 +13,10 @@ Clock::Clock()
 void Clock::IncrememtCounter () {
     while(Counter <= 10000){
     mutex.lock();
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//std::cout << "Time elapsed: " << Counter << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    //std::cout << "Time elapsed: " << Counter << std::endl;
     mutex.unlock();
-    Counter+=100;
+    Counter++;
     }
 }
 

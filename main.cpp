@@ -21,9 +21,9 @@ using namespace std;
 // std::ref( ) wraps the object we're passing so that it is passed by reference, because threads by nature takes a copy of the object instead of actual, thus it won't reflect actual object. Need tlo pass by
 int main()
 {
-    Scheduler* scheduler;
-    
-    scheduler->main();
+    Scheduler scheduler;
+	scheduler.main();	
+
     
     /*
      

@@ -16,11 +16,7 @@ class Scheduler
     
     void main();
     void takeProcess (vector<Process*> &, Clock*);
-    
-    Process* tempProc;
-    Process* veryfirstProc;
-    mutex mu;
-    vector<Process*> ProcessQ;
+
     //std::thread *CPU1;
     //std::thread *CPU2;
     
