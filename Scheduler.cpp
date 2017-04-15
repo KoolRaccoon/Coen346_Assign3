@@ -2,13 +2,15 @@
 #include "Clock.h"
 #include <iostream>
 #include <fstream>
-
+#include <condition_variable>
 using namespace std;
 
 mutex mu1;
 mutex mu2;
 mutex mu3;
+mutex mup;
 
+condition_variable cv;
 
 Scheduler::Scheduler()
 {
@@ -48,17 +50,23 @@ void Scheduler::ReadFile() {
 }
 
 void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
-    cout << "Enter takeProcess" << endl;
+    //cout << "Enter takeProcess 1" << endl;
 	bool firstProcessPicked = false;
 	int time = 0;
 	bool startProcess = false;
+	bool startProcesschecked = false;
+	bool checkifFirsttimer = false; // UNTIL THIS PART
+	bool done = false;
 	Process* veryfirstProcOfCPU;
-	//cout << this_thread::get_id() << "Entered takeProcess" <<endl;
+	//cout << "Enter takeProcess 2" << endl;
 	while (ProcessQ.size()>0) {
+		//cout << "Enter takeProcess 3" << endl;
 		if (!firstProcessPicked) {
-			//cout << this_thread::get_id() << "firstProcessPicked check"<<endl;
+			//cout << "Enter takeProcess 4" << endl;
+			checkifFirsttimer = true; 
+
 			mu1.lock();
-			//cout << this_thread::get_id() << "Locked mutex"<<endl;
+
 			veryfirstProcOfCPU = ProcessQ.front();
 			for (int i = 0; i<ProcessQ.size(); i++) { //For loop to pop the front process out of the vector and shifting the objects.
 				if (i<ProcessQ.size() - 1) {
@@ -68,38 +76,54 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
 					ProcessQ.at(i) = NULL;
 				}
 			}
-
+			//cout << "P" << veryfirstProcOfCPU->getPID() << "retrieved" << endl;
 			ProcessQ.pop_back();
-			//cout << this_thread::get_id() << "P" << veryfirstProcOfCPU->getPID()<<endl;
+
 			firstProcessPicked = true;
 			mu1.unlock();
-			//cout << this_thread::get_id() << "Unlocked mutex"<<endl;
+
 			//Checks for VERY FIRST arrival time to start executing process
+			//cout << "P" << veryfirstProcOfCPU->getPID() << "at startProcess check with bool :" << startProcess << endl;
 			while (!startProcess) {
 				if (clk->getTime() == veryfirstProcOfCPU->getaT()) {
 					//cout <<veryfirstProcOfCPU->getaT();
 					startProcess = true;
+					startProcesschecked = true;
 					time = veryfirstProcOfCPU->getaT();
 				}
 			}
-			cout << "Time : " << clk->getTime() << ", P" << veryfirstProcOfCPU->getPID() << " Started by CPU" << this_thread::get_id() << endl;
-			time += veryfirstProcOfCPU->getbT();
-			while (clk->getTime() != time) {
 
+			if (startProcesschecked) {
+				startProcess = true;
+				startProcesschecked = false;
 			}
 
-			cout << "Time : " << clk->getTime() << ", P" << veryfirstProcOfCPU->getPID() << " Ended by CPU" << std::this_thread::get_id() << endl;
+			//cout << "P" << veryfirstProcOfCPU->getPID() << "exited startProcess check with bool :" << startProcess << endl;
+			// Starts here
+
+			//cout << "Time : " << clk->getTime() << ", P" << veryfirstProcOfCPU->getPID() << " Started by CPU" << this_thread::get_id() << endl;
+			//time += veryfirstProcOfCPU->getbT();
+			//while (clk->getTime() != time) {
+			//}
+			//std::unique_lock<std::mutex> lck(mup);
+			veryfirstProcOfCPU->start(veryfirstProcOfCPU, clk, time, done, checkifFirsttimer);
+			//cout << "P" << veryfirstProcOfCPU->getPID()<< "Checking boolean DONE :" << done << endl;
+			while (!done) {}
+			//cout << "P" << veryfirstProcOfCPU->getPID() << "Exiting boolean DONE :" << done << endl;
+
+			done = false;
+
+			//cout << "Time : " << clk->getTime() << ", P" << veryfirstProcOfCPU->getPID() << " Ended by CPU" << std::this_thread::get_id() << endl;
 
 
 		}
 		else {
+			//cout << "ENTERED ELSE" << endl;
 			Process* tempProc;
-			//cout << this_thread::get_id() << "Entered else" <<endl;
 			mu2.lock();
-			//cout << this_thread::get_id() << "Locked mutex2" <<endl;
 			tempProc = ProcessQ.front();
-			for (int i = 0; i<ProcessQ.size(); i++) { //For loop to pop the front process out of the vector and shifting the objects.
-				if (i<ProcessQ.size() - 1) {
+			for (int i = 0; i < ProcessQ.size(); i++) { //For loop to pop the front process out of the vector and shifting the objects.
+				if (i < ProcessQ.size() - 1) {
 					ProcessQ.at(i) = ProcessQ.at(i + 1);
 				}
 				else {
@@ -111,49 +135,44 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
 			mu2.unlock();
 			//cout << this_thread::get_id() << "unlocked mutex2" <<endl;
 
-			cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Started by CPU" << this_thread::get_id() << endl;
-			time += tempProc->getbT();
-			while (clk->getTime() != time) {
-
-			}
-			cout << "Process number is " << tempProc->getPID() << endl;
-			cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Ended by CPU" << this_thread::get_id() << endl;
+			//cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Started by CPU" << this_thread::get_id() << endl;
+			//time += tempProc->getbT();
+			//while (clk->getTime() != time) {
+			////tempProc->start(tempProc, clk, time);
+			//}
+			//cout << "Process number is " << tempProc->getPID() << endl;
+			//cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Ended by CPU" << this_thread::get_id() << endl;
+			done = false;
+			//std::unique_lock<std::mutex> lck(mup);
+			tempProc->start(tempProc, clk, time, done, checkifFirsttimer);
+			while (!done) {}
+			//cout << "Bool done is now " << done << endl;
 
 		}
+		cout << "ProcessQ size is " << ProcessQ.size() << endl;
 	}
 }
 
 
 void Scheduler::main(){
-	cout << "entered scheduler main()" << endl;
-   //cout<< "Time: " << Clk->getTime() << endl;
- //   Process p1(1,1000,1000);
- //   Process p2(2,2500,2000);
- //   Process p3(3,3500,3000);
-	//Process p4(4, 5000, 4000);
-    
-    //Process* ProcessList[2];
+	//cout << "entered scheduler main()" << endl;
+
     vector<Process*> ProcessQ;
 
 	ReadFile();
-	//cout << "Before for loop" << endl;
-	//cout << Num_Process << endl;
+
 	for (int i = 0; i<Num_Process; i++) {
 		cout << ProcessArray[i].getPID() << ", " << ProcessArray[i].getaT() << ", " << ProcessArray[i].getbT() << endl;
 		ProcessQ.push_back(&ProcessArray[i]);
 	}
-    //for (int i = 1; i<sizeof(ProcessList); i++)
- //  ProcessQ.push_back(&p1);
- //   ProcessQ.push_back(&p2);
- //   ProcessQ.push_back(&p3);
-	//ProcessQ.push_back(&p4);
+
     
     std::thread CPU1(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk)); // Attempting to pass Clock object to thread1
     std::thread CPU2(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk)); // Attempting to pass Clock object to thread2
     
-    //if (CPU1.joinable())
+
     CPU1.join();
-    //if (CPU2.joinable())
+
     CPU2.join();
     
 
