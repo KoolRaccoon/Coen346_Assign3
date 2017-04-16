@@ -1,4 +1,5 @@
 #include "Clock.h"
+#include "Memory.h"
 #include <string>
 #include <thread>
 #include <chrono>
@@ -30,5 +31,5 @@ int Clock::getTime (){
 
 Clock::~Clock()
 {
-    t->join();
+    //t->join();
 }

@@ -2,6 +2,7 @@
 #include "Clock.h"
 #include <iostream>
 #include <fstream>
+#include "memory.h"
 #include <condition_variable>
 using namespace std;
 
@@ -25,7 +26,7 @@ Scheduler::~Scheduler()
     //dtor
 }
 
-void Scheduler::ReadFile() {
+void Scheduler::ReadinputFile() {
 
 	fstream input_File;
 
@@ -44,6 +45,24 @@ void Scheduler::ReadFile() {
 
 		//ReadProcess.push_back(&StoreProcess);
 		//cout << ReadProcess[i]->getPID()<<" " << ReadProcess[i]->getaT() << " " << ReadProcess[i]->getbT() << endl;
+	}
+
+	input_File.close();
+}
+
+void Scheduler::ReadMemConfigFile() {
+
+	fstream input_File;
+
+	string File_Path = "memconfig.txt";
+
+	input_File.open(File_Path);
+	input_File >> Mem_Size;
+	for (int i = 0; i < Mem_Size; i++) {
+		int a = i + 1;
+		MemoryArray[i].setVarID(a);
+		MemoryArray[i].setAgeint(0);
+		MemoryArray[i].setValue(0);
 	}
 
 	input_File.close();
@@ -151,6 +170,7 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
 		}
 		cout << "ProcessQ size is " << ProcessQ.size() << endl;
 	}
+	//cout << "Stuck here maybe?" << endl;
 }
 
 
@@ -159,18 +179,26 @@ void Scheduler::main(){
 
     vector<Process*> ProcessQ;
 
-	ReadFile();
+	ReadinputFile();
 
 	for (int i = 0; i<Num_Process; i++) {
 		cout << ProcessArray[i].getPID() << ", " << ProcessArray[i].getaT() << ", " << ProcessArray[i].getbT() << endl;
 		ProcessQ.push_back(&ProcessArray[i]);
 	}
 
+	vector<Memory*> MemoryStorage;
+	ReadMemConfigFile();
+	for (int j = 0; j < Mem_Size; j++) {
+		cout << MemoryArray[j].getVarID() << endl;
+		MemoryStorage.push_back(&MemoryArray[j]);
+	}
+
+
     
     std::thread CPU1(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk)); // Attempting to pass Clock object to thread1
     std::thread CPU2(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk)); // Attempting to pass Clock object to thread2
     
-
+	//cout << "waiting to join threads" << endl;
     CPU1.join();
 
     CPU2.join();

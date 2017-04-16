@@ -1,5 +1,6 @@
 #include "Process.h"
 #include "Clock.h"
+#include "Memory.h"
 #include <iostream>
 #include <thread>
 #include <mutex>
@@ -33,7 +34,7 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 	//cout << tempProc->getPID() << endl;
 	//cout << timer << endl;
 	int b = tempProc->getbT();
-	cout << "Burst time is " << b << endl;
+	//cout << "Burst time is " << b << endl;
 	cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Started by CPU" << this_thread::get_id() << endl;
 	timer += tempProc->getbT();
 	srand(time(NULL));
@@ -45,13 +46,15 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 		int d = 0;
 
 		//cout << "ITS FIRST TIME" << endl;
-		while(clk->getTime() != timer){
+		while(clk->getTime() < timer && b!=0){
+			while(b>0){
 					a = rand() % 200;
 					sumOa += a;
 					d = clk->getTime();
-			c = b - a;
-			if (b > 0) {
-				cout << "P" << tempProc->getPID() << "'s total of BT executed "<< sumOa << endl;
+					c = b - a;
+					//cout << "P" << tempProc->getPID() << "'s C: " << c << ", B: " << b << ", A: " << a << endl;
+			//if (b > 0) {
+				//cout << "P" << tempProc->getPID() << "'s total of BT executed "<< sumOa << endl;
 				if (c > 0) {
 					std::this_thread::sleep_for(std::chrono::milliseconds(a));
 					b -= a;
@@ -61,11 +64,11 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 					m6.unlock();
 				}
 				else {
-					cout << "P" << tempProc->getPID() << " Burst time left is " <<b<< endl;
-					cout << "P" << tempProc->getPID() << " Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
+					//cout << "P" << tempProc->getPID() << " Burst time left is " <<b<< endl;
+					//cout << "P" << tempProc->getPID() << " Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
 					//std::this_thread::sleep_for(std::chrono::milliseconds(b));
 					b -= b;
-
+					//cout << b << endl;
 				}
 
 			
@@ -80,24 +83,24 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 		int sumOa = 0;
 		int d = 0;
 		while (clk->getTime() != timer) {
+			while(b>0){
 			a = rand() % 200;
 			sumOa += a;
 			d = clk->getTime();
 			c = b - a;
-			if (b > 0) {
+	//		if (b > 0) {
 				if (c > 0) {
 
 					std::this_thread::sleep_for(std::chrono::milliseconds(a));
 					b -= a;
-
 					while (clk->getTime() != (d + a)) {} ////// 
 					m7.lock();
 					cout << "P" << tempProc->getPID() << " Finished a command at " << clk->getTime() << endl;
 					m7.unlock();
 				}
 				else {
-					cout << "P" << tempProc->getPID() << "'s Burst time left is " <<b<< endl;
-					cout << "Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
+					//cout << "P" << tempProc->getPID() << "'s Burst time left is " <<b<< endl;
+					//cout << "Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
 					//std::this_thread::sleep_for(std::chrono::milliseconds(b));
 					b -= b;
 				}
@@ -149,5 +152,6 @@ int Process::getPID(){
 
 Process::~Process()
 {
+	//t->join();
     //dtor
 }
