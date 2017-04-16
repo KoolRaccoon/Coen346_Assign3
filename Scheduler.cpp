@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include "memory.h"
+#include "MMU.h"
 #include <condition_variable>
 using namespace std;
 
@@ -68,7 +69,24 @@ void Scheduler::ReadMemConfigFile() {
 	input_File.close();
 }
 
-void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
+//void Scheduler::ReadCommandsFile()
+//{
+//	fstream input_File;
+//
+//	string File_Path = "memconfig.txt";
+//
+//	input_File.open(File_Path);
+//	for (int i = 0; i < Mem_Size; i++) {
+//		int a = i + 1;
+//		MemoryArray[i].setVarID(a);
+//		MemoryArray[i].setAgeint(0);
+//		MemoryArray[i].setValue(0);
+//	}
+//
+//	input_File.close();
+//}
+
+void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk, vector<Memory*>&MemoryStoage){
     //cout << "Enter takeProcess 1" << endl;
 	bool firstProcessPicked = false;
 	int time = 0;
@@ -97,6 +115,7 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
 			}
 			//cout << "P" << veryfirstProcOfCPU->getPID() << "retrieved" << endl;
 			ProcessQ.pop_back();
+			cout << "P" << veryfirstProcOfCPU->getPID()<<" taken from ProcessQ, Q size is now " << ProcessQ.size() << endl;
 
 			firstProcessPicked = true;
 			mu1.unlock();
@@ -125,7 +144,7 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
 			//while (clk->getTime() != time) {
 			//}
 			//std::unique_lock<std::mutex> lck(mup);
-			veryfirstProcOfCPU->start(veryfirstProcOfCPU, clk, time, done, checkifFirsttimer);
+			veryfirstProcOfCPU->start(veryfirstProcOfCPU, clk, time, done, checkifFirsttimer,MemoryStoage);
 			//cout << "P" << veryfirstProcOfCPU->getPID()<< "Checking boolean DONE :" << done << endl;
 			while (!done) {}
 			//cout << "P" << veryfirstProcOfCPU->getPID() << "Exiting boolean DONE :" << done << endl;
@@ -151,6 +170,7 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
 			}
 
 			ProcessQ.pop_back();
+			cout << "P" << tempProc->getPID() << " taken from ProcessQ, Q size is now " << ProcessQ.size() << endl;
 			mu2.unlock();
 			//cout << this_thread::get_id() << "unlocked mutex2" <<endl;
 
@@ -163,12 +183,12 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
 			//cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Ended by CPU" << this_thread::get_id() << endl;
 			done = false;
 			//std::unique_lock<std::mutex> lck(mup);
-			tempProc->start(tempProc, clk, time, done, checkifFirsttimer);
+			tempProc->start(tempProc, clk, time, done, checkifFirsttimer, MemoryStoage);
 			while (!done) {}
 			//cout << "Bool done is now " << done << endl;
 
 		}
-		cout << "ProcessQ size is " << ProcessQ.size() << endl;
+		//cout << "ProcessQ size is " << ProcessQ.size() << endl;
 	}
 	//cout << "Stuck here maybe?" << endl;
 }
@@ -189,14 +209,14 @@ void Scheduler::main(){
 	vector<Memory*> MemoryStorage;
 	ReadMemConfigFile();
 	for (int j = 0; j < Mem_Size; j++) {
-		cout << MemoryArray[j].getVarID() << endl;
+		//cout << MemoryArray[j].getVarID() << endl;
 		MemoryStorage.push_back(&MemoryArray[j]);
 	}
 
 
     
-    std::thread CPU1(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk)); // Attempting to pass Clock object to thread1
-    std::thread CPU2(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk)); // Attempting to pass Clock object to thread2
+    std::thread CPU1(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk), std::ref(MemoryStorage)); // Attempting to pass Clock object to thread1
+    std::thread CPU2(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk), std::ref(MemoryStorage)); // Attempting to pass Clock object to thread2
     
 	//cout << "waiting to join threads" << endl;
     CPU1.join();

@@ -14,6 +14,9 @@ mutex mu;
 mutex mub;
 mutex m6;
 mutex m7;
+mutex m8;
+mutex m9;
+mutex m5;
 
 Process::Process()
 {
@@ -28,14 +31,17 @@ Process::Process(int pid,int aT, int bT){
     PID = pid;
 }
 
-void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& checkifFirsttimer)
+void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& checkifFirsttimer, vector<Memory*>& MemoryStorage)
 {
+	//cout << "First Variable ID is " << MemoryStorage.at(0)->getVarID() << endl;
 	//cout << tempProc->getPID() << "Entered run()" << endl;
 	//cout << tempProc->getPID() << endl;
 	//cout << timer << endl;
 	int b = tempProc->getbT();
 	//cout << "Burst time is " << b << endl;
+	m5.lock();
 	cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Started by CPU" << this_thread::get_id() << endl;
+	m5.unlock();
 	timer += tempProc->getbT();
 	srand(time(NULL));
 
@@ -65,7 +71,9 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 				}
 				else {
 					//cout << "P" << tempProc->getPID() << " Burst time left is " <<b<< endl;
-					//cout << "P" << tempProc->getPID() << " Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
+					m7.lock();
+					cout << "P" << tempProc->getPID() << " Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
+					m7.unlock();
 					//std::this_thread::sleep_for(std::chrono::milliseconds(b));
 					b -= b;
 					//cout << b << endl;
@@ -100,7 +108,9 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 				}
 				else {
 					//cout << "P" << tempProc->getPID() << "'s Burst time left is " <<b<< endl;
-					//cout << "Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
+					m9.lock();
+					cout << "P" << tempProc->getPID() << " Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
+					m9.unlock();
 					//std::this_thread::sleep_for(std::chrono::milliseconds(b));
 					b -= b;
 				}
@@ -108,7 +118,7 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 
 		}
 	}
-
+		
 		cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Ended by CPU" << this_thread::get_id() << endl;
 		//cout << "TESTING HERE" << endl;
 		done = true;
@@ -120,10 +130,10 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 
 
 
-void Process::start(Process * tempProc, Clock * clk, int &timer, bool& done, bool& checkifFirsttimer)
+void Process::start(Process * tempProc, Clock * clk, int &timer, bool& done, bool& checkifFirsttimer, vector<Memory*>& MemoryStorage)
 {
 	//cout << tempProc->getPID() << "Entered start()" << endl;
-	t = new std::thread(&Process::run, this, std::ref(tempProc), std::ref(clk), std::ref(timer), std::ref(done), std::ref(checkifFirsttimer));
+	t = new std::thread(&Process::run, this, std::ref(tempProc), std::ref(clk), std::ref(timer), std::ref(done), std::ref(checkifFirsttimer), std::ref(MemoryStorage));
 }
 
 void Process::setaT(int aT){

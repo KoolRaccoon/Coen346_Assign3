@@ -1,6 +1,8 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 #include "Clock.h"
+#include "Memory.h"
+#include "MMU.h"
 #include <vector>
 #include <thread>
 
@@ -13,8 +15,8 @@ class Process
         Process();
         virtual ~Process();
         Process(int, int, int);
-		void run(Process*, Clock*, int&, bool&,bool&);
-		void start(Process*, Clock*, int&,bool&,bool&);
+		void run(Process*, Clock*, int&, bool&,bool&, vector<Memory*>&);
+		void start(Process*, Clock*, int&,bool&,bool&, vector<Memory*>&);
         void setaT(int);
         void setbT(int);
         void setPID(int);
