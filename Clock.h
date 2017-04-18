@@ -13,6 +13,7 @@ private:
 public:
 
     Clock();
+    //Clock( const Clock& obj);
     void IncrememtCounter();
     int getTime();
     void StartClock();
