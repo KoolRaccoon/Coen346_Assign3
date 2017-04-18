@@ -53,10 +53,10 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 		int sumOa = 0;
 		int d = 0;
 		int commandcounter=0;
-		int commandsize = Commandlist.size();
+		int commandsize = Commandlist.size() - 1;
 		int APICall = 0;
 		int valuetostore = 0;
-		int varPos = 0;
+		int varID = 0;
 
 		//cout << "ITS FIRST TIME" << endl;
 		while(clk->getTime() < timer && b!=0){
@@ -68,25 +68,133 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 					//cout << "P" << tempProc->getPID() << "'s C: " << c << ", B: " << b << ", A: " << a << endl;
 			//if (b > 0) {
 				//cout << "P" << tempProc->getPID() << "'s total of BT executed "<< sumOa << endl;
-				if (c > 0) {
-					cout << "Time " << clk->getTime() << ", P" << tempProc->getPID() << ", " << Commandlist.at(commandcounter)->getAction() << ": Variable " << Commandlist.at(commandcounter)->getVarID() << ", Value " << Commandlist.at(commandcounter)->getToValue() << endl;
-					APICall = Commandlist.at(commandcounter)->getActionID();
-					if (APICall = 1) {
-						valuetostore = Commandlist.at(commandcounter)->getToValue();
-						varPos = Commandlist.at(commandcounter)->getVarID();
+					if (commandcounter < commandsize) {
+
+						if (c > 0) {
+							string action = Commandlist.at(commandcounter)->getAction();
+							if (action == "Store") {
+								m10.lock();
+								cout << "Time " << clk->getTime() << ", P" << tempProc->getPID() << ", " << Commandlist.at(commandcounter)->getAction() << ": Variable " << Commandlist.at(commandcounter)->getVarID() << ", Value " << Commandlist.at(commandcounter)->getToValue() << endl;
+								m10.unlock();
+							}
+							else {
+								m10.lock();
+								cout << "Time " << clk->getTime() << ", P" << tempProc->getPID() << ", " << Commandlist.at(commandcounter)->getAction() << ": Variable " << Commandlist.at(commandcounter)->getVarID() << endl;
+								m10.unlock();
+							}
+						APICall = Commandlist.at(commandcounter)->getActionID();
+						//cout << APICall << endl;
+							if (APICall == 1) {
+								valuetostore = Commandlist.at(commandcounter)->getToValue();
+								varID = Commandlist.at(commandcounter)->getVarID();
+							}
+							else {
+								varID = Commandlist.at(commandcounter)->getVarID();
+							}
+							commandcounter++;
+							switch ( APICall ) 
+							{
+							case 1:
+								store(MemoryStorage, varID, valuetostore);
+								//cout << MemoryStorage.at(2)->getValue() << endl;
+								break;
+							case 2:
+								release(MemoryStorage, varID);
+								//cout << MemoryStorage.at(varPos)->getValue() << endl;
+								break;
+							}
+							std::this_thread::sleep_for(std::chrono::milliseconds(a));
+							b -= a;
+							while (clk->getTime() != (d + a)) {} ////// 
+							m6.lock();
+							//cout << "P" << tempProc->getPID() << " Finished command at " << clk->getTime() << endl;
+							m6.unlock();
+						}
+						else {
+							//cout << "P" << tempProc->getPID() << " Burst time left is " <<b<< endl;
+							m7.lock();
+							//cout << "P" << tempProc->getPID() << " Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
+							m7.unlock();
+							//std::this_thread::sleep_for(std::chrono::milliseconds(b));
+							b -= b;
+							//cout << b << endl;
+						}
 					}
 					else {
-						varPos = Commandlist.at(commandcounter)->getVarID();
+
+						if (c > 0) {
+							std::this_thread::sleep_for(std::chrono::milliseconds(a));
+							b -= a;
+							while (clk->getTime() != (d + a)) {} ////// 
+							m6.lock();
+							//cout << "P" << tempProc->getPID() << " Finished command at " << clk->getTime() << endl;
+							m6.unlock();
+						}
+						else {
+							//cout << "P" << tempProc->getPID() << " Burst time left is " <<b<< endl;
+							m7.lock();
+							//cout << "P" << tempProc->getPID() << " Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
+							m7.unlock();
+							//std::this_thread::sleep_for(std::chrono::milliseconds(b));
+							b -= b;
+							//cout << b << endl;
+						}
+					}
+			}
+		}
+		done = true;
+		checkifFirsttimer = false;
+	}
+	else if (!checkifFirsttimer) {
+		int a = 0;
+		int c = 0;
+		int sumOa = 0;
+		int d = 0;
+		int commandcounter = 0;
+		int commandsize = Commandlist.size() - 1;
+		int APICall = 0;
+		int valuetostore = 0;
+		int varID = 0;
+		while (clk->getTime() != timer) {
+			while(b>0){
+			a = rand() % 200;
+			sumOa += a;
+			d = clk->getTime();
+			c = b - a;
+	//		if (b > 0) {
+			if (commandcounter < commandsize) {
+				if (c > 0) {
+					string action = Commandlist.at(commandcounter)->getAction();
+					if (action == "Store") {
+						m10.lock();
+						cout << "Time " << clk->getTime() << ", P" << tempProc->getPID() << ", " << Commandlist.at(commandcounter)->getAction() << ": Variable " << Commandlist.at(commandcounter)->getVarID() << ", Value " << Commandlist.at(commandcounter)->getToValue() << endl;
+						m10.unlock();
+					}
+					else {
+						m10.lock();
+						cout << "Time " << clk->getTime() << ", P" << tempProc->getPID() << ", " << Commandlist.at(commandcounter)->getAction() << ": Variable " << Commandlist.at(commandcounter)->getVarID() << endl;
+						m10.unlock();
+					}
+					APICall = Commandlist.at(commandcounter)->getActionID();
+					//cout << APICall << endl;
+					if (APICall == 1) {
+						valuetostore = Commandlist.at(commandcounter)->getToValue();
+						varID = Commandlist.at(commandcounter)->getVarID();
+					}
+					else {
+						varID = Commandlist.at(commandcounter)->getVarID();
 					}
 					commandcounter++;
-					switch (APICall) {
+
+					switch (APICall)
+					{
 					case 1:
-						store(MemoryStorage, valuetostore, varPos);
-						cout << MemoryStorage.at(varPos)->getValue() << endl;
+						store(MemoryStorage, varID, valuetostore);
+						//cout << MemoryStorage.at(2)->getValue() << endl;
 						break;
 					case 2:
-						release(MemoryStorage, varPos);
-						cout << MemoryStorage.at(varPos)->getValue() << endl;
+						release(MemoryStorage, varID);
+						//cout << MemoryStorage.at(varPos)->getValue() << endl;
 						break;
 					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(a));
@@ -106,69 +214,30 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 					//cout << b << endl;
 				}
 
-			
 			}
-		}
-		done = true;
-		checkifFirsttimer = false;
-	}
-	else if (!checkifFirsttimer) {
-		int a = 0;
-		int c = 0;
-		int sumOa = 0;
-		int d = 0;
-		int commandcounter = 0;
-		int APICall = 0;
-		int valuetostore = 0;
-		int varPos = 0;
-		while (clk->getTime() != timer) {
-			while(b>0){
-			a = rand() % 200;
-			sumOa += a;
-			d = clk->getTime();
-			c = b - a;
-	//		if (b > 0) {
+			else {
 				if (c > 0) {
-					cout << "Time " << clk->getTime() << ", P" << tempProc->getPID() << ", " << Commandlist.at(commandcounter)->getAction() << ": Variable " << Commandlist.at(commandcounter)->getVarID() << ", Value " << Commandlist.at(commandcounter)->getToValue() << endl;
-					APICall = Commandlist.at(commandcounter)->getActionID();
-					if (APICall = 1) {
-						valuetostore = Commandlist.at(commandcounter)->getToValue();
-						varPos = Commandlist.at(commandcounter)->getVarID();
-					}
-					else {
-						varPos = Commandlist.at(commandcounter)->getVarID();
-					}
-					commandcounter++;
-					switch (APICall) {
-					case 1:
-						store(MemoryStorage, valuetostore, varPos);
-						//cout << MemoryStorage.at(varPos)->getValue() << endl;
-						break;
-					case 2:
-						release(MemoryStorage, varPos);
-						cout << MemoryStorage.at(varPos)->getValue() << endl;
-						break;
-					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(a));
 					b -= a;
 					while (clk->getTime() != (d + a)) {} ////// 
-					m7.lock();
+					m6.lock();
 					//cout << "P" << tempProc->getPID() << " Finished command at " << clk->getTime() << endl;
-					m7.unlock();
+					m6.unlock();
 				}
 				else {
-					//cout << "P" << tempProc->getPID() << "'s Burst time left is " <<b<< endl;
-					m9.lock();
+					//cout << "P" << tempProc->getPID() << " Burst time left is " <<b<< endl;
+					m7.lock();
 					//cout << "P" << tempProc->getPID() << " Not enough time to execute next command, sleeping for the rest of burst time. " << endl;
-					m9.unlock();
+					m7.unlock();
 					//std::this_thread::sleep_for(std::chrono::milliseconds(b));
 					b -= b;
+					//cout << b << endl;
 				}
 			}
-
+			}
 		}
 	}
-	m10.lock();
+		m10.lock();
 		cout << "Time " << clk->getTime() << ", P" << tempProc->getPID() << ", Terminated"/*" Ended by CPU" << this_thread::get_id()*/ << endl;
 		m10.unlock();
 		//cout << "TESTING HERE" << endl;
@@ -206,14 +275,92 @@ int Process::getbT(){
     return Burst_Time;
 }
 
-void Process::store(vector<Memory*>& MemoryStorage,int valuetostore, int & varPos)
+void Process::store(vector<Memory*>& MemoryStorage, /*int & varPos,*/ int & varID, int& valuetostore)
 {
-	MemoryStorage.at(varPos)->setValue(valuetostore);
+	bool found = false;
+	int counter = 0;
+	int free = 0;
+	bool gotfree = false;
+
+	//Check if there's free room in memory
+	for (int j = 0; j < MemoryStorage.size(); j++) {
+		if (MemoryStorage.at(j)->getVarID() == 0) {
+			counter++;
+		}
+	}
+
+	//Fetch first free position to store
+	//for (int k = 0; k < MemoryStorage.size(); k++) {
+	//	if(!gotfree){
+	//		if (MemoryStorage.at(k)->getVarID() == 0) {
+	//			free = k;
+	//			gotfree = true;
+	//		}
+	//	}
+	//}
+
+	//If Main memory is full, check if variable is stored in main memory. otherwise do something else.
+	//cout << counter << endl;
+	if (counter ==0) {
+		for (int i = 0; i < MemoryStorage.size(); i++) {
+			if (varID == MemoryStorage.at(i)->getVarID()) {
+				MemoryStorage.at(i)->setVarID(varID);
+				MemoryStorage.at(i)->setValue(valuetostore);
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			m10.lock();
+
+			// Add case that main memory is full and variable does not exist in main memory.
+			// Store into virtual
+			
+			cout << "PLEASE STORE IN VM" << endl;
+			
+			
+			
+			
+			m10.unlock();
+		}
+	}
+	else if (counter > 0) {
+		bool stored = false;
+		for (int i = 0; i < MemoryStorage.size(); i++) {
+			if (MemoryStorage.at(i)->getVarID()== varID) {
+				MemoryStorage.at(i)->setVarID(varID);
+				MemoryStorage.at(i)->setValue(valuetostore);
+				stored = true;
+				break;
+			}
+			//Main memory : [3 , ] [0 , ] [3 , ]
+		}
+		if (!stored) {
+			for (int i = 0; i < MemoryStorage.size(); i++) {
+				if (MemoryStorage.at(i)->getVarID() == 0) {
+					MemoryStorage.at(i)->setVarID(varID);
+					MemoryStorage.at(i)->setValue(valuetostore);
+					break;
+				}
+			}
+		}
+
+	}
+
+	for (int i = 0; i < MemoryStorage.size(); i++) {
+		cout << "Variable " << MemoryStorage.at(i)->getVarID() << endl;
+	}
+
+	//MemoryStorage.at(varPos)->setValue(valuetostore);
 }
 
 void Process::release(vector<Memory*>& MemoryStorage, int varID)
 {
-	MemoryStorage.at(varID)->setVarID(0);
+	for (int i = 0; i < MemoryStorage.size(); i++) {
+		if (MemoryStorage.at(i)->getVarID() == varID) {
+			MemoryStorage.at(i)->setVarID(0);
+		}
+	}
 }
 
 int Process::getPID(){

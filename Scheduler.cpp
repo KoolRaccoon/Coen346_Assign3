@@ -61,7 +61,7 @@ void Scheduler::ReadMemConfigFile() {
 	input_File >> Mem_Size;
 	for (int i = 0; i < Mem_Size; i++) {
 		int a = i + 1;
-		MemoryArray[i].setVarID(a);
+		MemoryArray[i].setVarID(0);
 		MemoryArray[i].setAgeint(0);
 		MemoryArray[i].setValue(0);
 	}

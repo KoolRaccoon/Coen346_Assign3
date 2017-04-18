@@ -20,7 +20,7 @@ class Process
         void setaT(int);
         void setbT(int);
         void setPID(int);
-		void store(vector<Memory*>&,int, int&);
+		void store(vector<Memory*>&,int&, int&);
 		void release(vector<Memory*>&, int);
         int getPID();
         int getaT();
