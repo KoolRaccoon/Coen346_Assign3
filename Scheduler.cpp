@@ -4,9 +4,6 @@
 #include <fstream>
 
 using namespace std;
-
-
-Process* tempProc;
 mutex mu1;
 mutex mu2;
 mutex mu3;
@@ -29,7 +26,7 @@ void Scheduler::ReadFile() {
 
 	fstream input_File;
 
-	string File_Path = "input.txt";
+	string File_Path = "/Users/Felix/school/University/Winter_2017/COEN_346/Prog. Assign 3/COEN346_Assign_3/COEN346_Assign_3/input.txt";
 
 	input_File.open(File_Path);
 	input_File >> Num_Process;
@@ -94,6 +91,7 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk){
 
 		}
 		else {
+			Process* tempProc;
 			//cout << this_thread::get_id() << "Entered else" <<endl;
 			mu2.lock();
 			//cout << this_thread::get_id() << "Locked mutex2" <<endl;
@@ -128,26 +126,26 @@ void Scheduler::main(){
 	cout << "entered scheduler main()" << endl;
 
    //cout<< "Time: " << Clk->getTime() << endl;
-    Process p1(1,1000,1000);
-    Process p2(2,2500,1000);
-    Process p3(3,3500,1000);
-	Process p4(4, 5000, 1000);
+ //   Process p1(1,1000,1000);
+ //   Process p2(2,2500,2000);
+ //   Process p3(3,3500,3000);
+	//Process p4(4, 5000, 4000);
     
     //Process* ProcessList[2];
     vector<Process*> ProcessQ;
 
-	//ReadFile();
+	ReadFile();
 	//cout << "Before for loop" << endl;
 	//cout << Num_Process << endl;
-	//for (int i = 0; i<Num_Process; i++) {
-	//	cout << ProcessArray[i].getPID() << ", " << ProcessArray[i].getaT() << ", " << ProcessArray[i].getbT() << endl;
-	//	ProcessQ.push_back(&ProcessArray[i]);
-	//}
+	for (int i = 0; i<Num_Process; i++) {
+		cout << ProcessArray[i].getPID() << ", " << ProcessArray[i].getaT() << ", " << ProcessArray[i].getbT() << endl;
+		ProcessQ.push_back(&ProcessArray[i]);
+	}
     //for (int i = 1; i<sizeof(ProcessList); i++)
-   ProcessQ.push_back(&p1);
-    ProcessQ.push_back(&p2);
-    ProcessQ.push_back(&p3);
-	ProcessQ.push_back(&p4);
+ //  ProcessQ.push_back(&p1);
+ //   ProcessQ.push_back(&p2);
+ //   ProcessQ.push_back(&p3);
+	//ProcessQ.push_back(&p4);
     
     std::thread CPU1(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk)); // Attempting to pass Clock object to thread1
     std::thread CPU2(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk)); // Attempting to pass Clock object to thread2
