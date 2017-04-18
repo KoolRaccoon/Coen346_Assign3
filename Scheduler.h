@@ -17,7 +17,7 @@ class Scheduler
     virtual ~Scheduler();
     
     void main();
-    void takeProcess (vector<Process*> &, Clock*, vector<Memory*> &, vector<MMU*>&);
+    void takeProcess (vector<Process*> &, Clock*, vector<Memory*> &, vector<MMU*>&, vector<Memory*>&);
 	int Num_Process;
 	int Mem_Size;
 	int commandCounter;

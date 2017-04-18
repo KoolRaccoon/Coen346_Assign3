@@ -19,6 +19,8 @@ mutex m9;
 mutex m5;
 mutex m10;
 
+void print(vector<Memory*>&);
+
 Process::Process()
 {
     Arrival_Time=0;
@@ -32,7 +34,7 @@ Process::Process(int pid,int aT, int bT){
     PID = pid;
 }
 
-void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& checkifFirsttimer, vector<Memory*>& MemoryStorage, vector<MMU*>&Commandlist)
+void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& checkifFirsttimer, vector<Memory*>& MemoryStorage, vector<MMU*>&Commandlist, vector<Memory*>&VirtualMemory)
 {
 	//cout << "First Variable ID is " << MemoryStorage.at(0)->getVarID() << endl;
 	//cout << "First command action is: " << Commandlist.at(0)->getActionID() << endl;
@@ -95,7 +97,7 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 							switch ( APICall ) 
 							{
 							case 1:
-								store(MemoryStorage, varID, valuetostore);
+								store(MemoryStorage,VirtualMemory, varID, valuetostore);
 								//cout << MemoryStorage.at(2)->getValue() << endl;
 								break;
 							case 2:
@@ -103,7 +105,7 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 								//cout << MemoryStorage.at(varPos)->getValue() << endl;
 								break;
 							}
-							std::this_thread::sleep_for(std::chrono::milliseconds(a));
+							//std::this_thread::sleep_for(std::chrono::milliseconds(a));
 							b -= a;
 							while (clk->getTime() != (d + a)) {} ////// 
 							m6.lock();
@@ -123,7 +125,7 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 					else {
 
 						if (c > 0) {
-							std::this_thread::sleep_for(std::chrono::milliseconds(a));
+							//std::this_thread::sleep_for(std::chrono::milliseconds(a));
 							b -= a;
 							while (clk->getTime() != (d + a)) {} ////// 
 							m6.lock();
@@ -189,7 +191,7 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 					switch (APICall)
 					{
 					case 1:
-						store(MemoryStorage, varID, valuetostore);
+						store(MemoryStorage,VirtualMemory, varID, valuetostore);
 						//cout << MemoryStorage.at(2)->getValue() << endl;
 						break;
 					case 2:
@@ -197,7 +199,7 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 						//cout << MemoryStorage.at(varPos)->getValue() << endl;
 						break;
 					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(a));
+					//std::this_thread::sleep_for(std::chrono::milliseconds(a));
 					b -= a;
 					while (clk->getTime() != (d + a)) {} ////// 
 					m6.lock();
@@ -217,7 +219,7 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 			}
 			else {
 				if (c > 0) {
-					std::this_thread::sleep_for(std::chrono::milliseconds(a));
+					//std::this_thread::sleep_for(std::chrono::milliseconds(a));
 					b -= a;
 					while (clk->getTime() != (d + a)) {} ////// 
 					m6.lock();
@@ -249,10 +251,10 @@ void Process::run(Process *tempProc, Clock *clk, int &timer, bool& done,bool& ch
 
 
 
-void Process::start(Process * tempProc, Clock * clk, int &timer, bool& done, bool& checkifFirsttimer, vector<Memory*>& MemoryStorage, vector<MMU*>& Commandlist)
+void Process::start(Process * tempProc, Clock * clk, int &timer, bool& done, bool& checkifFirsttimer, vector<Memory*>& MemoryStorage, vector<MMU*>& Commandlist, vector<Memory*>& VirtualMemory)
 {
 	//cout << tempProc->getPID() << "Entered start()" << endl;
-	t = new std::thread(&Process::run, this, std::ref(tempProc), std::ref(clk), std::ref(timer), std::ref(done), std::ref(checkifFirsttimer), std::ref(MemoryStorage), std::ref(Commandlist));
+	t = new std::thread(&Process::run, this, std::ref(tempProc), std::ref(clk), std::ref(timer), std::ref(done), std::ref(checkifFirsttimer), std::ref(MemoryStorage), std::ref(Commandlist), std::ref(VirtualMemory));
 }
 
 void Process::setaT(int aT){
@@ -275,12 +277,13 @@ int Process::getbT(){
     return Burst_Time;
 }
 
-void Process::store(vector<Memory*>& MemoryStorage, /*int & varPos,*/ int & varID, int& valuetostore)
+void Process::store(vector<Memory*>& MemoryStorage,vector<Memory*>& VirtualMemory, /*int & varPos,*/ int & varID, int& valuetostore)
 {
 	bool found = false;
 	int counter = 0;
 	int free = 0;
 	bool gotfree = false;
+	bool storedinVM = false;
 
 	//Check if there's free room in memory
 	for (int j = 0; j < MemoryStorage.size(); j++) {
@@ -311,17 +314,57 @@ void Process::store(vector<Memory*>& MemoryStorage, /*int & varPos,*/ int & varI
 			}
 		}
 		if (!found) {
-			m10.lock();
+
 
 			// Add case that main memory is full and variable does not exist in main memory.
 			// Store into virtual
-			
+			if (VirtualMemory.size() == 0) {
+				Memory tempMemory;
+				tempMemory.setAgeint(0);
+				tempMemory.setValue(valuetostore);
+				tempMemory.setVarID(varID);
+				VirtualMemory.push_back(&tempMemory);
+				cout << "Inside Virtual Memory : " << VirtualMemory.at(0)->getVarID() << " " << VirtualMemory.at(0)->getValue() << endl;
+			}
+			//else {
+			//	for (int i = 0; i < VirtualMemory.size(); i++) {
+			//		if (varID == VirtualMemory.at(i)->getVarID()) {
+			//			VirtualMemory.at(i)->setVarID(varID);
+			//			VirtualMemory.at(i)->setValue(valuetostore);
+			//			found = true;
+			//			break;
+			//		}
+			//	}
+			//	if (!found) {
+			//		for (int i = 0; i < VirtualMemory.size(); i++) {
+			//			if (VirtualMemory.at(i)->getVarID() == 0) {
+			//				VirtualMemory.at(i)->setVarID(varID);
+			//				VirtualMemory.at(i)->setValue(valuetostore);
+			//	
+			//				storedinVM = true;
+			//				break;
+			//			}
+			//		}
+			//		if (!storedinVM) {
+			//			Memory tempMemory;
+			//			tempMemory.setAgeint(0);
+			//			tempMemory.setValue(valuetostore);
+			//			tempMemory.setVarID(varID);
+			//			VirtualMemory.push_back(&tempMemory);
+			//		}
+			//	}
+			//}
+
+			//for (int i = 0; i < VirtualMemory.size(); i++) {
+			//	cout << "Inside Virtual Memory : " << VirtualMemory.at(i)->getVarID() << " " << VirtualMemory.at(i)->getValue() << endl;
+			//}
+			std::thread t1(&print, std::ref(VirtualMemory));
 			cout << "PLEASE STORE IN VM" << endl;
 			
+			t1.join();
 			
 			
-			
-			m10.unlock();
+
 		}
 	}
 	else if (counter > 0) {
@@ -360,6 +403,12 @@ void Process::release(vector<Memory*>& MemoryStorage, int varID)
 		if (MemoryStorage.at(i)->getVarID() == varID) {
 			MemoryStorage.at(i)->setVarID(0);
 		}
+	}
+}
+
+void print(vector<Memory*>&VirtualMemory) {
+	for (int i = 0; i < VirtualMemory.size(); i++) {
+		cout << "Inside Virtual Memory : " << VirtualMemory.at(i)->getVarID() << " " << VirtualMemory.at(i)->getValue() << endl;
 	}
 }
 

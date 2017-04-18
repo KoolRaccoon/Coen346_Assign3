@@ -124,7 +124,7 @@ void Scheduler::ReadCommandsFile()
 //	input_File.close();
 //}
 
-void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk, vector<Memory*>&MemoryStoage, vector<MMU*>&Commandlist){
+void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk, vector<Memory*>&MemoryStoage, vector<MMU*>&Commandlist, vector<Memory*>&VirtualMemory){
     //cout << "Enter takeProcess 1" << endl;
 	bool firstProcessPicked = false;
 	int time = 0;
@@ -182,7 +182,7 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk, vector<Mem
 			//while (clk->getTime() != time) {
 			//}
 			//std::unique_lock<std::mutex> lck(mup);
-			veryfirstProcOfCPU->start(veryfirstProcOfCPU, clk, time, done, checkifFirsttimer,MemoryStoage, Commandlist);
+			veryfirstProcOfCPU->start(veryfirstProcOfCPU, clk, time, done, checkifFirsttimer,MemoryStoage, Commandlist, VirtualMemory);
 			//cout << "P" << veryfirstProcOfCPU->getPID()<< "Checking boolean DONE :" << done << endl;
 			while (!done) {}
 			//cout << "P" << veryfirstProcOfCPU->getPID() << "Exiting boolean DONE :" << done << endl;
@@ -221,9 +221,9 @@ void Scheduler::takeProcess(vector<Process *> &ProcessQ, Clock * clk, vector<Mem
 			//cout << "Time : " << clk->getTime() << ", P" << tempProc->getPID() << " Ended by CPU" << this_thread::get_id() << endl;
 			done = false;
 			//std::unique_lock<std::mutex> lck(mup);
-			tempProc->start(tempProc, clk, time, done, checkifFirsttimer, MemoryStoage, Commandlist);
+			tempProc->start(tempProc, clk, time, done, checkifFirsttimer, MemoryStoage, Commandlist, VirtualMemory);
 			while (!done) {}
-			//cout << "Bool done is now " << done << endl;
+			//cout << "Bool done is now " << dosne << endl;
 
 		}
 		//cout << "ProcessQ size is " << ProcessQ.size() << endl;
@@ -251,6 +251,8 @@ void Scheduler::main(){
 		MemoryStorage.push_back(&MemoryArray[j]);
 	}
 
+	vector<Memory*> VirtualMemory;
+
 	vector<MMU*> Commandlist;
 	ReadCommandsFile();
 	for (int j = 0; j < commandCounter; j++) {
@@ -259,8 +261,8 @@ void Scheduler::main(){
 	}
 
     
-    std::thread CPU1(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk), std::ref(MemoryStorage), std::ref(Commandlist)); // Attempting to pass Clock object to thread1
-    std::thread CPU2(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk), std::ref(MemoryStorage), std::ref(Commandlist)); // Attempting to pass Clock object to thread2
+    std::thread CPU1(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk), std::ref(MemoryStorage), std::ref(Commandlist), std::ref(VirtualMemory)); // Attempting to pass Clock object to thread1
+    std::thread CPU2(&Scheduler::takeProcess, this, std::ref(ProcessQ), std::ref(Clk), std::ref(MemoryStorage), std::ref(Commandlist), std::ref(VirtualMemory)); // Attempting to pass Clock object to thread2
     
 	//cout << "waiting to join threads" << endl;
     CPU1.join();

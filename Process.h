@@ -15,12 +15,12 @@ class Process
         Process();
         virtual ~Process();
         Process(int, int, int);
-		void run(Process*, Clock*, int&, bool&,bool&, vector<Memory*>&, vector<MMU*>&);
-		void start(Process*, Clock*, int&,bool&,bool&, vector<Memory*>&, vector<MMU*>&);
+		void run(Process*, Clock*, int&, bool&,bool&, vector<Memory*>&, vector<MMU*>&, vector<Memory*>&);
+		void start(Process*, Clock*, int&,bool&,bool&, vector<Memory*>&, vector<MMU*>&, vector<Memory*>&);
         void setaT(int);
         void setbT(int);
         void setPID(int);
-		void store(vector<Memory*>&,int&, int&);
+		void store(vector<Memory*>&,vector<Memory*>&,int&, int&);
 		void release(vector<Memory*>&, int);
         int getPID();
         int getaT();
