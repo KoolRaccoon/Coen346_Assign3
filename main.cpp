@@ -4,22 +4,32 @@
 #include <thread>
 #include "Scheduler.h"
 #include "Clock.h"
+#include "Memory.h"
+#include "MMU.h"
 #include <mutex>
 
-mutex mu;
+//mutex mu;
+
 
 using namespace std;
 
-void takeProcess(vector<Process*> &ProcessQ, Clock& clk); //Trying to pass in Clock object. Doesn't work...
+//void takeProcess(vector<Process*> &ProcessQ, Clock& clk); //Trying to pass in Clock object. Doesn't work...
 /* Maybe you shouldn't pass Clock clk, but just "clk" instead since you're not defining the function, only declaring it*/
-Process* tempProc;
-Process* veryfirstProc;
+//Process* tempProc;
+//Process* veryfirstProc;
 
 
 // Right now, I initiated the clock object. However, when I try to pass it to the function, it crashes. Idk what the issue is.
 // std::ref( ) wraps the object we're passing so that it is passed by reference, because threads by nature takes a copy of the object instead of actual, thus it won't reflect actual object. Need tlo pass by
 int main()
 {
+    Scheduler scheduler;
+    
+	scheduler.main();	
+    
+    /*
+     
+     
     Clock clk;
     clk.StartClock();
     cout<< "Time: " << clk.getTime() <<endl;
@@ -42,7 +52,7 @@ int main()
     CPU1.join();
     CPU2.join();
 
-/*    ProcessList[0] = p1;
+    ProcessList[0] = p1;
     ProcessList[1] = p2;
     pt1 = & ProcessList[0];
     pt2 = & ProcessList[1];
@@ -52,11 +62,11 @@ int main()
 */    return 0;
 }
 
+/*
 void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
-    //cout <<"Entering takeProcess" <<endl;
     veryfirstProc = ProcessQ.front();
     int counter = 1;
-    int time =0;
+    int time = 0;
     bool startProcess = false;
     
     while(!startProcess){
@@ -69,31 +79,30 @@ void takeProcess(vector<Process*> &ProcessQ, Clock& clk){
             time = veryfirstProc->getaT();
     }
 
-    //cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
     while(ProcessQ.size()>0){
-            //cout << "Function ran: " << counter << " times" << endl;
-    std::lock_guard<std::mutex> lock(mu);
-    tempProc = ProcessQ.front();
-    cout << "Time : " << clk.getTime() << ", P" << tempProc->getPID() << " Started" << endl;
-            time += tempProc->getbT();
-            while(clk.getTime()!= time){
-
-            }
+    
+        std::lock_guard<std::mutex> lock(mu);
+        tempProc = ProcessQ.front();
+        cout << "Time : " << clk.getTime() << ", P" << tempProc->getPID() << " Started" << endl;
+        
+        time += tempProc->getbT();
+    
+        while(clk.getTime()!= time){}
 
         cout << "Time : " << clk.getTime() << ", P"<< tempProc->getPID() <<" ended. " << "current thread: " << std::this_thread::get_id() << endl;
     
-    for(int i = 0; i<ProcessQ.size(); i++){ //For loop to pop the front process out of the vector and shifting the objects.
-        if(i<ProcessQ.size()-1){
-        ProcessQ.at(i) = ProcessQ.at(i+1);
-        }else{
-        ProcessQ.at(i)= NULL;
-        }
+        for(int i = 0; i<ProcessQ.size(); i++){ //For loop to pop the front process out of the vector and shifting the objects.
+            if(i<ProcessQ.size()-1){
+                ProcessQ.at(i) = ProcessQ.at(i+1);
+            }else{
+                ProcessQ.at(i)= NULL;
+            }
     }
 
     ProcessQ.pop_back();
-    //cout << "Vector ProcessQ is of size: " << ProcessQ.size() << endl;
     counter++;
     mu.unlock();
     }
 
 }
+*/
