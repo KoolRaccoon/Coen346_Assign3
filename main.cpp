@@ -4,6 +4,8 @@
 #include <thread>
 #include "Scheduler.h"
 #include "Clock.h"
+#include "Memory.h"
+#include "MMU.h"
 #include <mutex>
 
 //mutex mu;

@@ -2,6 +2,8 @@
 #define SCHEDULER_H
 #include "process.h"
 #include "Clock.h"
+#include "MMU.h"
+#include "Memory.h"
 #include <thread>
 
 using namespace std;
@@ -15,10 +17,16 @@ class Scheduler
     virtual ~Scheduler();
     
     void main();
-    void takeProcess (vector<Process*> &, Clock*);
+    void takeProcess (vector<Process*> &, Clock*, vector<Memory*> &, vector<MMU*>&, vector<Memory*>&);
 	int Num_Process;
+	int Mem_Size;
+	int commandCounter;
 	Process ProcessArray[20];
-	void ReadFile();
+	Memory MemoryArray[20];
+	MMU MMUArray[20];
+	void ReadinputFile();
+	void ReadMemConfigFile();
+	void ReadCommandsFile();
     //Process* tempProc;
     //std::thread *CPU1;
     //std::thread *CPU2;

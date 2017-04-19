@@ -1,4 +1,5 @@
 #include "Clock.h"
+#include "Memory.h"
 #include <string>
 #include <thread>
 #include <chrono>
@@ -13,10 +14,10 @@ Clock::Clock()
 void Clock::IncrememtCounter () {
     while(Counter <= 10000){
     mutex.lock();
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 //std::cout << "Time elapsed: " << Counter << std::endl;
     mutex.unlock();
-    Counter+=10;
+    Counter+=1;
     }
 }
 
@@ -30,5 +31,5 @@ int Clock::getTime (){
 
 Clock::~Clock()
 {
-    t->join();
+    //t->join();
 }
